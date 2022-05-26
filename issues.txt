@@ -1,0 +1,12 @@
+classes_updated: 
+    - on class create, header URL includes invalid class code
+     -dito for generate new class code
+     -mute class Code so it's not editable for students
+     -classes not updating in DB
+     -customize query for students/teachers so that not all classes data are pulled
+
+class_view
+    - retrieve class name on line 16 and use for drop-down as well as current class name
+
+students
+    - create query where listed students are only available to those in the teacher's class
