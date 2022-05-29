@@ -4,7 +4,7 @@ session_start();
 
 if(!ISSET($_SESSION['username'])) {
     header('location:login.php');
-} elseif($_SESSION['level'] != 'Admin' or $_SESSION['level'] != 'Teacher') {
+} elseif($_SESSION['level'] >= 3) {
     header('location:index.php?msg=Permission%20Denied');
 } else {
 
@@ -76,9 +76,9 @@ if(!ISSET($_SESSION['username'])) {
     <main class="flex-shrink-0">
         <div class="container">
             <h1 class="mt-5">Welcome, <?php echo $_SESSION['fname']; ?>
-                <?php if($_SESSION['level'] == 'Admin') {
+                <?php if($_SESSION['level'] == 1) {
                     echo '<i class="fa-solid fa-id-card"></i>';
-                } elseif($_SESSION['level'] == 'Teacher') {
+                } elseif($_SESSION['level'] == 2) {
                     echo '<i class="fa-solid fa-person-chalkboard"></i>';
                 } else {
                     echo '<i class="fa-solid fa-circle-user"></i>';

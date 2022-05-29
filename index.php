@@ -5,7 +5,6 @@ session_start();
 if(!ISSET($_SESSION['username'])) {
     header('location:login.php');
 } else {
-
     if(ISSET($_GET['msg'])) {
         $msg = $_GET['msg'];
     }
@@ -74,9 +73,9 @@ if(!ISSET($_SESSION['username'])) {
                 <div class="col-auto me-auto">
                     <div class="form-floating">
                         <h1>Welcome, <?php echo $_SESSION['fname']; ?>
-                            <?php if($_SESSION['level'] == 'Admin') {
+                            <?php if($_SESSION['level'] == 1) {
                                 echo '<i class="fa-solid fa-id-card"></i>';
-                            } elseif($_SESSION['level'] == 'Teacher') {
+                            } elseif($_SESSION['level'] == 2) {
                                 echo '<i class="fa-solid fa-person-chalkboard"></i>';
                             } else {
                                 echo '<i class="fa-solid fa-circle-user"></i>';
@@ -134,7 +133,7 @@ if(!ISSET($_SESSION['username'])) {
                                         echo '<tr><td>' . $row['className'] . '</td>';
                                         echo '<td>' . $row['subjectName'] . '</td>';
                                         echo '<td>' . $row['classCode'] . '</td>';
-                                        if($_SESSION['level'] == 'Admin' or $_SESSION['level'] == 'Teacher') {
+                                        if($_SESSION['level'] < 3) {
                                             echo '<td><a href="class_view.php?class_id=' . $row['classID']  . '" class="btn btn-outline-success btn-sm">View</a></td></tr>';
                                         }
                                     } ?>

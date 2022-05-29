@@ -4,29 +4,69 @@ session_start();
 
 if(!ISSET($_SESSION['username'])) {
     header('location:login.php');
-} elseif($_SESSION['level'] != 'Admin' or $_SESSION['level'] != 'Teacher') {
+} elseif($_SESSION['level'] >= 3) {
     header('location:index.php?msg=Permission%20Denied');
 } else {
 
     require('conn.php');
 
-    if(ISSET($_POST['enrollStudents'])) {
-
-        //$ids = $_POST['']
-        echo $_POST['userIDs'];
-
+    if(ISSET($_GET['class_id'])) {
+        $classID = $_GET['class_id'];
+    } else {
+        $classID = $_POST['classID'];
     }
 
-    $classID = $_GET['class_id'];
+    // enroll new students in class
+    if(ISSET($_POST['enrollButton'])) {
+
+        if(ISSET($_POST['studentsToEnroll'])) {
+
+            $addStudentsToClassQuery = "INSERT INTO `enrollments` (`enrollmentsID`, `classID`, `userID`) VALUES ";
+
+            //add each students to the class
+            $appendToQuery = '';
+            foreach($_POST['studentsToEnroll'] as $key => $studentID) {
+                $appendToQuery = $appendToQuery . '(NULL,' . $classID . ',' . $studentID . ')';
+                if ($key != array_key_last($_POST['studentsToEnroll'])) {
+                    $appendToQuery = $appendToQuery . ',';
+                }
+            } 
+            $addStudentsToClassQuery = $addStudentsToClassQuery . $appendToQuery;
+            mysqli_query($conn, $addStudentsToClassQuery) or DIE('Cannot add students to class.');
+        }
+        if(empty($classID)) {
+            $msg = "No Students Selected.";
+        }
+    }
+
+    //unenroll students from class
+    if(ISSET($_POST['unEnrollButton'])) {
+
+        if(ISSET($_POST['studentsToUnEnroll'])) {
+
+            $removeStudentsFromClassQuery = "DELETE from `enrollments` WHERE (`classID`,`userID`) IN (";
+            //add each students to the class
+            $appendToQuery = '';
+            foreach($_POST['studentsToUnEnroll'] as $key => $studentID) {
+                $appendToQuery = $appendToQuery . "(" . $classID . "," . $studentID;
+                if ($key != array_key_last($_POST['studentsToUnEnroll'])) {
+                    $appendToQuery = $appendToQuery . '),';
+                } else {
+                    $appendToQuery = $appendToQuery . '))';
+                }
+            } 
+            $removeStudentsFromClassQuery = $removeStudentsFromClassQuery . $appendToQuery;
+            mysqli_query($conn, $removeStudentsFromClassQuery) or DIE('Cannot remove students frpm class.');
+        }
+    }
 
     //get list of classes
     $classesQuery = "SELECT `classes`.`className`, `classes`.`classID` FROM `classes`";
-    $classesData = mysqli_query($conn, $classesQuery) or DIE('Cannot fetch list of classes');
-    //$currentClass = $classesData['className'];
-    $currentClass = "FixMe";
+    $classesData = mysqli_fetch_all(mysqli_query($conn, $classesQuery), MYSQLI_ASSOC) or DIE('Cannot fetch list of classes');
+    $currentClass = $classesData[$classID - 1]['className'];
 
     //get list of students not enrolled in current class
-    $studentsNotAlreadyEnrolledQuery = "SELECT * FROM `users` WHERE `userID` NOT IN (SELECT `userID` FROM `enrollments`);";
+    $studentsNotAlreadyEnrolledQuery = "SELECT * FROM `users` WHERE NOT EXISTS (SELECT * FROM `enrollments` where `users`.`userID` = `enrollments`.`userID` and `enrollments`.`classID` = '" . $classID . "');";
     $studentsNotInClass = mysqli_query($conn, $studentsNotAlreadyEnrolledQuery) or DIR('Bad All Students Query');
 
     // Get list of students in class
@@ -57,9 +97,9 @@ if(!ISSET($_SESSION['username'])) {
                 <div class="col-auto me-auto">
                     <div class="form-floating">
                         <h1>Welcome, <?php echo $_SESSION['fname']; ?>
-                            <?php if($_SESSION['level'] == 'Admin') {
+                            <?php if($_SESSION['level'] == 1) {
                                 echo '<i class="fa-solid fa-id-card"></i>';
-                            } elseif($_SESSION['level'] == 'Teacher') {
+                            } elseif($_SESSION['level'] == 2) {
                                 echo '<i class="fa-solid fa-person-chalkboard"></i>';
                             } else {
                                 echo '<i class="fa-solid fa-circle-user"></i>';
@@ -71,15 +111,19 @@ if(!ISSET($_SESSION['username'])) {
                     <form method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                     <div class="form-floating">
                     <select name="class_id" class="form-select" id="floatingSelectGrid">
-                        <option value="0" selected>Select Class</option>
+                        <option value="0">Select Class</option>
                         <?php
-                            while($row = mysqli_fetch_array($classesData)) {
-                                echo '<option value="' . $row['classID'] . '">' . $row['className'] . '</option>';
+                            foreach($classesData as $class) {
+                                if($class['classID'] == $classID) {
+                                    $selected = 'selected';
+                                } else {
+                                    $selected = '';
+                                }
+                                echo '<option value="' . $class['classID'] . '" ' . $selected . '>' . $class['className'] . '</option>';
                             }
                         ?>
                     </select>
                     <label for="floatingSelectGrid">Select a Class</label>
-                        <label for="floatingSelectGrid">Select a Class</label>
                     </div>
                 </div>
                 <div class="col-auto">
@@ -109,25 +153,26 @@ if(!ISSET($_SESSION['username'])) {
                     <div class="col p-4 d-flex flex-column position-static">
                     <h3 class="mb-0"><strong>Class:</strong><span class="text-muted"><?php echo $currentClass; ?></span></h3>
                     <div class="table-responsive mt-2">
+                        <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                         <table class="table align-middle" width="100%" cellspacing="0">
                             <thead class="table-light">
                                 <td></td>
-                                <td>Username</td>
+                                <td>Surname</td>
                                 <td>First Name</td>
-                                <td>Last Name</td>
+                                <td>Username</td>
                             </thead>
                             <tbody class="table-group-divider">
                                 <?php
                                 while($row = mysqli_fetch_array($enrolledStudents)) {
-                                    echo '<tr><td><input type="checkbox" name="unenroll"></td>';
-                                    echo '<td>' . $row['username'] . '</td>';
+                                    echo '<tr><td><input type="checkbox" name="studentsToUnEnroll[]" value="' . $row['userID'] . '"></td>';
+                                    echo '<td>' . $row['lname'] . '</td>';
                                     echo '<td>' . $row['fname'] . '</td>';
-                                    echo '<td>' . $row['lname'] . '</td></tr>';
+                                    echo '<td>' . $row['username'] . '</td></tr>';
                                 } ?>
                             </tbody>
                         </table>
                         <div class="d-flex align-items-end justify-content-end">
-                            <input type="submit" class="btn btn-primary" name="addStudents" value="Unenroll Selected"></td>
+                            <input type="submit" class="btn btn-primary" name="unEnrollButton" value="Unenroll Selected"></td>
                         </div>
                     </div>
                     <!--<a href="#" class="stretched-link">Continue reading</a>-->
@@ -140,7 +185,6 @@ if(!ISSET($_SESSION['username'])) {
                 <div class="col-md-6">
                     <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
                         <div class="col p-4 d-flex flex-column position-static">
-                            <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                             <h3 class="mb-0"><strong>Available</strong><span class="text-muted">Students</span></h3>
                             <div class="table-responsive mt-2">
                                 <table class="table align-middle" width="100%" cellspacing="0">
@@ -153,7 +197,7 @@ if(!ISSET($_SESSION['username'])) {
                                     <tbody class="table-group-divider">
                                         <?php
                                         while($row = mysqli_fetch_array($studentsNotInClass)) {
-                                            echo '<tr><td><input type="checkbox" name="' . $row['userID'] . '"></td>';
+                                            echo '<tr><td><input type="checkbox" name="studentsToEnroll[]" value="' . $row['userID'] . '"></td>';
                                             echo '<td>' . $row['lname'] . '</td>';
                                             echo '<td>' . $row['fname'] . '</td>';
                                             echo '<td>' . $row['username'] . '</td></tr>';
@@ -161,7 +205,8 @@ if(!ISSET($_SESSION['username'])) {
                                     </tbody>
                                 </table>
                                 <div class="d-flex align-items-end justify-content-end">
-                                    <input type="submit" class="btn btn-primary" name="enrollStudents" value="Enroll Selected"></td>
+                                    <input type="hidden" name="classID" value="<?php echo $classID; ?>">
+                                    <input type="submit" class="btn btn-primary" name="enrollButton" value="Enroll Selected"></td>
                                 </div>
                             </div>
                             </form>

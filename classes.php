@@ -76,9 +76,9 @@ if(!ISSET($_SESSION['username'])) {
     <main class="flex-shrink-0">
         <div class="container">
             <h1 class="mt-5">Welcome, <?php echo $_SESSION['fname']; ?>
-                <?php if($_SESSION['level'] == 'Admin') {
+                <?php if($_SESSION['level'] == 1) {
                     echo '<i class="fa-solid fa-id-card"></i>';
-                } elseif($_SESSION['level'] == 'Teacher') {
+                } elseif($_SESSION['level'] == 2) {
                     echo '<i class="fa-solid fa-person-chalkboard"></i>';
                 } else {
                     echo '<i class="fa-solid fa-circle-user"></i>';
@@ -94,7 +94,7 @@ if(!ISSET($_SESSION['username'])) {
                             echo '<div class="alert alert-danger" role="alert">' . $msg . '</div>';
                         }
 
-                        if($_SESSION['level'] == 'Admin' or $_SESSION['level'] == 'Teacher') {
+                        if($_SESSION['level'] <= 2) {
                     ?>
                     <p class="card-text">Create a Class:</p>
                     <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
@@ -144,7 +144,7 @@ if(!ISSET($_SESSION['username'])) {
                                             echo '<tr><td><a href="class_view.php?class_id=' . $row['classID'] . '">' . $row['className'] . '</td>';
                                             echo '<td>' . $row['subjectName'] . '</td>';
                                             echo '<td>' . $row['classCode'] . '</td>';
-                                            if($_SESSION['level'] == 'Admin' or $_SESSION['level'] == 'Teacher') {
+                                            if($_SESSION['level'] <= 2) {
                                                 echo '<td><a href="classes_update.php?class_id=' . $row['classID']  . '" class="btn btn-outline-success btn-sm">Update</a></td></tr>';
                                             }
                                         } ?>

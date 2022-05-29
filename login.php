@@ -23,14 +23,7 @@ if (ISSET($_POST['login'])) {
             if($password == $userData['password']) {
             // if (password_verify($_POST['password'], $password)) {
                 //profile info
-                if($userData['userLevel'] == '1') {
-                    $level = 'Admin';
-                } elseif($userData['userLevel'] == '2') {
-                    $level = 'Teacher';
-                } else {
-                    $level = 'Student';
-                }
-                $_SESSION['level'] = $level;
+                $_SESSION['level'] = $userData['userLevel'];
                 $_SESSION['userID'] = $userData['userID'];
                 $_SESSION['username'] = $userData['username'];
                 $_SESSION['fname'] = $userData['fname'];

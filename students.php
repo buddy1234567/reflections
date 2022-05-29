@@ -4,7 +4,7 @@ session_start();
 
 if(!ISSET($_SESSION['username'])) {
     header('location:login.php');
-} elseif($_SESSION['level'] != 'Admin' or $_SESSION['level'] != 'Teacher') {
+} elseif($_SESSION['level'] >= 3) {
     header('location:index.php?msg=Permission%20Denied');
 } else {
 
@@ -25,7 +25,7 @@ if(!ISSET($_SESSION['username'])) {
     }
 
     // Get list of subjects
-    if($_SESSION['level'] == 'Admin') {
+    if($_SESSION['level'] == 1) {
         $studentsQuery = "SELECT * FROM `users` WHERE `userLevel` NOT IN ('1')";
     } else {
         //$studentsQuery = "SELECT * FROM `users` WHERE "
@@ -136,7 +136,7 @@ if(!ISSET($_SESSION['username'])) {
                                             echo '<tr><td>' . $row['username'] . '</td>';
                                             echo '<td>' . $row['fname'] . '</td>';
                                             echo '<td>' . $row['lname'] . '</td>';
-                                            if($row['userLevel'] == 2) { $userLevel = "teacher"; } elseif($row['userLevel'] == "3") { $userLevel = "student"; }
+                                            if($row['userLevel'] == 2) { $userLevel = "Teacher"; } elseif($row['userLevel'] == "3") { $userLevel = "student"; }
                                             echo '<td>' . $userLevel . '</td>';
                                             echo '<td><a href="user_update.php?user_id=' . $row['userID']  . '" class="btn btn-outline-success btn-sm">Update</a></td></tr>';
                                         } ?>

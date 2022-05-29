@@ -13,11 +13,11 @@
           <li class="nav-item">
             <a class="nav-link" href="classes.php">Classes</a>
           </li>
-          <?php if($_SESSION['level'] == 'Admin' or $_SESSION['level'] == 'Teacher') { ?>
+          <?php if(ISSET($_SESSION['username'])) { if($_SESSION['level'] < 3) { ?>
           <li class="nav-item">
             <a class="nav-link" href="students.php">Students</a>
           </li>
-          <?php } ?>
+          <?php }  } ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-bs-toggle="dropdown" aria-expanded="false">Options</a>
             <ul class="dropdown-menu" aria-labelledby="dropdown07">
